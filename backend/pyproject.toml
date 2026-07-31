@@ -1,0 +1,15 @@
+[project]
+name = "document-intelligence-backend"
+version = "0.1.0"
+description = "Backend for an AI-powered document intelligence platform built with FastAPI and Large Language Models."
+authors = [
+    {name = "Lorena Onica",email = "onica.lorena05@gmail.com"}
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
