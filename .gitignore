@@ -50,3 +50,7 @@ build/
 # Local databases
 *.db
 *.sqlite3
+
+# Snapshot generator
+scripts/
+project_snapshot/
