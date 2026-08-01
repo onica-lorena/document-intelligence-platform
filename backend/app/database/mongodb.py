@@ -14,10 +14,12 @@ async def connect_to_mongo() -> None:
 
 
 async def close_mongo_connection() -> None:
-    global client
+    global client, database
 
     if client is not None:
         client.close()
+        client = None
+        database = None
 
 
 def get_database() -> AsyncIOMotorDatabase:
