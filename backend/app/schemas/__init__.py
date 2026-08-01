@@ -1,3 +1,6 @@
-from .document import Document
+from .document import DocumentCreate, DocumentResponse
 
-__all__ = ["Document"]
+__all__ = [
+    "DocumentCreate",
+    "DocumentResponse",
+]

@@ -1,6 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.schemas.document import Document
+from app.models.document import Document
 
 
 class DocumentRepository:

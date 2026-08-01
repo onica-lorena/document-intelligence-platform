@@ -1,5 +1,5 @@
 from app.repositories.document_repository import DocumentRepository
-from app.schemas.document import Document
+from app.models.document import Document
 
 
 class DocumentService:
