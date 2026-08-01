@@ -1,4 +1,4 @@
-from app.repositories.document_repository import DocumentRepository
+from app.repositories.document import DocumentRepository
 from app.models.document import Document
 
 

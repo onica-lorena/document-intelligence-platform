@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.logger import setup_logging
 from app.core.middleware import log_requests
 from app.core.lifespan import lifespan
+from app.api.documents import router as document_router
 
 setup_logging()
 
@@ -23,3 +24,4 @@ app.middleware("http")(log_requests)
 register_exception_handlers(app)
 
 app.include_router(health_router)
+app.include_router(document_router)

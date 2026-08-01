@@ -1,3 +1,5 @@
-from .document_repository import DocumentRepository
+from .document import DocumentRepository
 
-__all__ = ["DocumentRepository"]
+__all__ = [
+    "DocumentRepository",
+]

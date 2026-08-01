@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel
+from app.models.document import DocumentStatus
 
 
 class DocumentCreate(BaseModel):
@@ -12,5 +13,5 @@ class DocumentResponse(BaseModel):
     id: str
     filename: str
     content_type: str
-    uploaded_at: datetime
-    status: str
+    created_at: datetime
+    status: DocumentStatus
