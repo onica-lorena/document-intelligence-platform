@@ -278,12 +278,12 @@ The project is being developed incrementally, with each milestone introducing ne
 ### Milestone 1 — Project Foundation
 
 - [ ] Initialize React frontend
-- [ ] Initialize FastAPI backend
-- [ ] Configure MongoDB
+- [x] Initialize FastAPI backend
+- [x] Configure MongoDB
 - [ ] Configure Docker environment
-- [ ] Create project architecture
-- [ ] Implement document upload
-- [ ] Store uploaded document metadata
+- [x] Create project architecture
+- [x] Implement document upload
+- [x] Store uploaded document metadata
 
 ---
 
@@ -324,8 +324,8 @@ The project is being developed incrementally, with each milestone introducing ne
 
 ### Milestone 5 — Observability
 
-- [ ] Logging
-- [ ] Request monitoring
+- [x] Logging
+- [x] Request monitoring
 - [ ] Processing metrics
 - [ ] Error reporting
 - [ ] Performance monitoring
@@ -358,6 +358,17 @@ The project is being developed incrementally, with each milestone introducing ne
 
 > **Current milestone:** Project Foundation
 
-The project is currently in the architecture and planning phase. The software architecture, technology stack, and development roadmap have been defined before implementation begins.
+The backend foundation has been successfully established.
 
-The next step is to implement the backend foundation, followed by the document processing pipeline.
+Implemented so far:
+
+- FastAPI application structure
+- MongoDB integration
+- Configuration management
+- Logging and request monitoring
+- Repository-Service architecture
+- Document metadata persistence
+- Initial document creation endpoint
+- Local file storage service
+
+The next step is to implement the complete document upload workflow by storing uploaded files locally while persisting their metadata in MongoDB. Once the upload pipeline is complete, the project will move on to document processing and AI-powered analysis.
