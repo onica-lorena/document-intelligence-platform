@@ -13,8 +13,10 @@ class DocumentStatus(str, Enum):
 
 class Document(BaseModel):
     filename: str
+    stored_filename: str
+    storage_path: str
+    file_size: int
     content_type: str
     status: DocumentStatus = DocumentStatus.UPLOADED
-
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
