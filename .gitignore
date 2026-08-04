@@ -55,3 +55,6 @@ build/
 # Snapshot generator
 scripts/
 project_snapshot/
+
+# Storage
+storage/
