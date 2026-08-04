@@ -1,22 +1,27 @@
 from fastapi import UploadFile
-from app.repositories.document import DocumentRepository
-from app.models.document import Document
-from app.models.storage import StoredFile
+
 from app.models.document import Document, DocumentStatus
+from app.repositories.document import DocumentRepository
+from app.storage.local import LocalStorage
+
 
 class DocumentService:
 
     def __init__(
         self,
         repository: DocumentRepository,
+        storage: LocalStorage,
     ):
         self.repository = repository
-        
+        self.storage = storage
+
     async def upload_document(
         self,
         file: UploadFile,
-        stored_file: StoredFile,
-    ) -> Document:
+    ) -> tuple[str, Document]:
+
+        stored_file = await self.storage.save(file)
+
         document = Document(
             filename=file.filename,
             stored_filename=stored_file.stored_filename,
@@ -26,6 +31,6 @@ class DocumentService:
             status=DocumentStatus.UPLOADED,
         )
 
-        await self.repository.create(document)
+        document_id = await self.repository.create(document)
 
-        return document
+        return document_id, document

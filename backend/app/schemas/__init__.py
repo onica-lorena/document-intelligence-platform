@@ -1,6 +1,5 @@
-from .document import DocumentCreate, DocumentResponse
+from .document import DocumentResponse
 
 __all__ = [
-    "DocumentCreate",
     "DocumentResponse",
 ]
