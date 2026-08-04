@@ -5,7 +5,7 @@ import uuid
 from fastapi import UploadFile
 
 from app.core.config import settings
-
+from app.models.storage import StoredFile
 
 class LocalStorage:
 
@@ -19,12 +19,12 @@ class LocalStorage:
     async def save(
         self,
         file: UploadFile,
-    ) -> str:
+    ) -> StoredFile:
         extension = Path(file.filename).suffix
 
-        filename = f"{uuid.uuid4()}{extension}"
+        stored_filename = f"{uuid.uuid4()}{extension}"
 
-        destination = self.storage_path / filename
+        destination = self.storage_path / stored_filename
 
         with destination.open("wb") as buffer:
             shutil.copyfileobj(
@@ -32,4 +32,8 @@ class LocalStorage:
                 buffer,
             )
 
-        return filename
+        return StoredFile(
+            stored_filename=stored_filename,
+            storage_path=str(destination),
+            file_size=destination.stat().st_size,
+        )
