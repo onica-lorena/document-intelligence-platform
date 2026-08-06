@@ -1,3 +1,7 @@
 from .document import DocumentService
+from .processing import ProcessingService
 
-__all__ = ["DocumentService"]
+__all__ = [
+    "DocumentService",
+    "ProcessingService",
+]
