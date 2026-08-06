@@ -5,7 +5,11 @@ from app.processing.base import BaseProcessor
 
 class PDFProcessor(BaseProcessor):
 
-    async def extract_text(self, file_path: str) -> str:
+    async def extract_text(
+        self,
+        file_path: str,
+    ) -> tuple[str, int]:
+
         document = fitz.open(file_path)
 
         text = ""
@@ -13,6 +17,8 @@ class PDFProcessor(BaseProcessor):
         for page in document:
             text += page.get_text()
 
+        page_count = len(document)
+
         document.close()
 
-        return text
+        return text, page_count

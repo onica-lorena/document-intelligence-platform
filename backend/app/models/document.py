@@ -17,6 +17,14 @@ class Document(BaseModel):
     storage_path: str
     file_size: int
     content_type: str
+
     status: DocumentStatus = DocumentStatus.UPLOADED
+
+    text: str | None = None
+
+    page_count: int | None = None
+
+    processing_error: str | None = None
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
