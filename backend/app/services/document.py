@@ -3,6 +3,7 @@ from fastapi import UploadFile
 from app.models.document import Document, DocumentStatus
 from app.repositories.document import DocumentRepository
 from app.storage.local import LocalStorage
+from app.services.processing import ProcessingService
 
 
 class DocumentService:
@@ -14,6 +15,9 @@ class DocumentService:
     ):
         self.repository = repository
         self.storage = storage
+        self.processing_service = ProcessingService(
+            repository
+        )
 
     async def upload_document(
         self,
@@ -32,5 +36,13 @@ class DocumentService:
         )
 
         document_id = await self.repository.create(document)
+
+        await self.processing_service.process_document(
+            document_id
+        )
+
+        document = await self.repository.find_by_id(
+            document_id
+        )
 
         return document_id, document

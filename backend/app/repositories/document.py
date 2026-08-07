@@ -77,3 +77,22 @@ class DocumentRepository:
                 }
             },
         )
+
+    async def mark_as_failed(
+        self,
+        document_id: str,
+        error: str,
+    ) -> None:
+
+        await self.collection.update_one(
+            {
+                "_id": ObjectId(document_id)
+            },
+            {
+                "$set": {
+                    "status": DocumentStatus.FAILED,
+                    "processing_error": error,
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )

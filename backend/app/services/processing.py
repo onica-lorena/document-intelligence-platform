@@ -22,17 +22,26 @@ class ProcessingService:
         if document is None:
             raise ValueError("Document not found.")
 
-        await self.repository.update_status(
-            document_id,
-            DocumentStatus.PROCESSING,
-        )
+        try:
+            await self.repository.update_status(
+                document_id,
+                DocumentStatus.PROCESSING,
+            )
 
-        text, page_count = await self.pdf_processor.extract_text(
-            document.storage_path,
-        )
+            text, page_count = await self.pdf_processor.extract_text(
+                document.storage_path,
+            )
 
-        await self.repository.update_processing_result(
-            document_id=document_id,
-            text=text,
-            page_count=page_count,
-        )
+            await self.repository.update_processing_result(
+                document_id=document_id,
+                text=text,
+                page_count=page_count,
+            )
+
+        except Exception as exc:
+            await self.repository.mark_as_failed(
+                document_id,
+                str(exc),
+            )
+
+            raise
