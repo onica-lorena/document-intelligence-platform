@@ -9,7 +9,13 @@ class TextSplitter:
         document_id: str,
         text: str,
         chunk_size: int = 1000,
+        chunk_overlap: int = 200,
     ) -> list[Chunk]:
+
+        if chunk_overlap >= chunk_size:
+            raise ValueError(
+                "chunk_overlap must be smaller than chunk_size."
+            )
 
         chunks = []
 
@@ -18,7 +24,9 @@ class TextSplitter:
 
         while start < len(text):
 
-            chunk_text = text[start:start + chunk_size]
+            end = start + chunk_size
+
+            chunk_text = text[start:end]
 
             chunks.append(
                 Chunk(
@@ -31,6 +39,9 @@ class TextSplitter:
 
             index += 1
 
-            start += chunk_size
+            if end >= len(text):
+                break
+
+            start += chunk_size - chunk_overlap
 
         return chunks

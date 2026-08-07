@@ -1,9 +1,10 @@
 from fastapi import UploadFile
 
 from app.models.document import Document, DocumentStatus
+from app.repositories.chunk import ChunkRepository
 from app.repositories.document import DocumentRepository
-from app.storage.local import LocalStorage
 from app.services.processing import ProcessingService
+from app.storage.local import LocalStorage
 
 
 class DocumentService:
@@ -15,8 +16,14 @@ class DocumentService:
     ):
         self.repository = repository
         self.storage = storage
+
+        chunk_repository = ChunkRepository(
+            repository.collection.database
+        )
+
         self.processing_service = ProcessingService(
-            repository
+            document_repository=repository,
+            chunk_repository=chunk_repository,
         )
 
     async def upload_document(
@@ -35,7 +42,9 @@ class DocumentService:
             status=DocumentStatus.UPLOADED,
         )
 
-        document_id = await self.repository.create(document)
+        document_id = await self.repository.create(
+            document
+        )
 
         await self.processing_service.process_document(
             document_id
