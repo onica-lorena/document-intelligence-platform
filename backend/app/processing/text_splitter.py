@@ -8,6 +8,8 @@ class TextSplitter:
         *,
         document_id: str,
         text: str,
+        page_number: int | None = None,
+        start_index: int = 0,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
     ) -> list[Chunk]:
@@ -20,7 +22,7 @@ class TextSplitter:
         chunks = []
 
         start = 0
-        index = 0
+        index = start_index
 
         while start < len(text):
 
@@ -34,6 +36,7 @@ class TextSplitter:
                     chunk_index=index,
                     text=chunk_text,
                     character_count=len(chunk_text),
+                    page_number=page_number,
                 )
             )
 

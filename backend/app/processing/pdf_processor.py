@@ -8,17 +8,19 @@ class PDFProcessor(BaseProcessor):
     async def extract_text(
         self,
         file_path: str,
-    ) -> tuple[str, int]:
+    ) -> tuple[str, int, list[str]]:
 
         document = fitz.open(file_path)
 
-        text = ""
+        pages = []
 
         for page in document:
-            text += page.get_text()
+            pages.append(page.get_text())
 
         page_count = len(document)
 
         document.close()
 
-        return text, page_count
+        text = "\n".join(pages)
+
+        return text, page_count, pages

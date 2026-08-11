@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
 
@@ -12,8 +12,10 @@ class Chunk(BaseModel):
 
     character_count: int
 
+    page_number: int | None = None
+
     embedding: list[float] | None = None
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
     )

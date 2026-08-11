@@ -27,3 +27,24 @@ class ChunkRepository:
         await self.collection.insert_many(
             documents
         )
+        
+    async def find_by_document_id(
+        self,
+        document_id: str,
+    ) -> list[Chunk]:
+
+        documents = await (
+            self.collection
+            .find(
+                {
+                    "document_id": document_id
+                }
+            )
+            .sort("chunk_index", 1)
+            .to_list(length=None)
+        )
+
+        return [
+            Chunk(**document)
+            for document in documents
+        ]

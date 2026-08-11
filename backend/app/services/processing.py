@@ -36,14 +36,26 @@ class ProcessingService:
                 DocumentStatus.PROCESSING,
             )
 
-            text, page_count = await self.pdf_processor.extract_text(
+            text, page_count, pages = await self.pdf_processor.extract_text(
                 document.storage_path,
             )
 
-            chunks = self.text_splitter.split(
-                document_id=document_id,
-                text=text,
-            )
+            chunks = []
+
+            chunk_index = 0
+
+            for page_number, page_text in enumerate(pages, start=1):
+
+                page_chunks = self.text_splitter.split(
+                    document_id=document_id,
+                    text=page_text,
+                    page_number=page_number,
+                    start_index=chunk_index,
+                )
+
+                chunks.extend(page_chunks)
+
+                chunk_index += len(page_chunks)
 
             await self.chunk_repository.bulk_create(
                 chunks
