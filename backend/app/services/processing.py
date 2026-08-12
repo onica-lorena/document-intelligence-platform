@@ -3,7 +3,7 @@ from app.processing.pdf_processor import PDFProcessor
 from app.processing.text_splitter import TextSplitter
 from app.repositories.chunk import ChunkRepository
 from app.repositories.document import DocumentRepository
-
+from app.services.embedding import EmbeddingService
 
 class ProcessingService:
 
@@ -11,9 +11,11 @@ class ProcessingService:
         self,
         document_repository: DocumentRepository,
         chunk_repository: ChunkRepository,
+        embedding_service: EmbeddingService,
     ):
         self.document_repository = document_repository
         self.chunk_repository = chunk_repository
+        self.embedding_service = embedding_service
 
         self.pdf_processor = PDFProcessor()
         self.text_splitter = TextSplitter()
@@ -56,6 +58,10 @@ class ProcessingService:
                 chunks.extend(page_chunks)
 
                 chunk_index += len(page_chunks)
+
+            chunks = self.embedding_service.embed_chunks(
+                chunks
+            )
 
             await self.chunk_repository.bulk_create(
                 chunks
