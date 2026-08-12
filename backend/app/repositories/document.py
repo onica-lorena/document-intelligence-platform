@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
 
 from app.models.document import Document
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models.document import (
     Document,
     DocumentStatus,
@@ -51,7 +51,7 @@ class DocumentRepository:
             {
                 "$set": {
                     "status": status,
-                    "updated_at": datetime.utcnow(),
+                    "updated_at": datetime.now(timezone.utc),
                 }
             },
         )
@@ -73,7 +73,7 @@ class DocumentRepository:
                     "page_count": page_count,
                     "status": DocumentStatus.COMPLETED,
                     "processing_error": None,
-                    "updated_at": datetime.utcnow(),
+                    "updated_at": datetime.now(timezone.utc),
                 }
             },
         )
@@ -92,7 +92,7 @@ class DocumentRepository:
                 "$set": {
                     "status": DocumentStatus.FAILED,
                     "processing_error": error,
-                    "updated_at": datetime.utcnow(),
+                    "updated_at": datetime.now(timezone.utc),
                 }
             },
         )
