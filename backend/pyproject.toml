@@ -13,6 +13,7 @@ dependencies = [
     "motor (>=3.7.1,<4.0.0)",
     "python-multipart (>=0.0.32,<0.0.33)",
     "pymupdf (>=1.28.0,<2.0.0)",
+    "sentence-transformers (>=5.7.0,<6.0.0)",
 ]
 
 [tool.poetry]
