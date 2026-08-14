@@ -1,5 +1,5 @@
 from qdrant_client.models import Distance, PointStruct, VectorParams
-
+from uuid import uuid5, NAMESPACE_URL
 from app.core.config import settings
 from app.models.chunk import Chunk
 from app.vectorstore.client import qdrant_client
@@ -40,7 +40,12 @@ class VectorRepository:
 
         points = [
             PointStruct(
-                id=f"{chunk.document_id}:{chunk.chunk_index}",
+                id=str(
+                    uuid5(
+                        NAMESPACE_URL,
+                        f"{chunk.document_id}:{chunk.chunk_index}",
+                    )
+                ),
                 vector=chunk.embedding,
                 payload={
                     "document_id": chunk.document_id,

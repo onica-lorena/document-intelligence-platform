@@ -19,6 +19,7 @@ async def test_process_document_success():
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
     embedding_service = Mock()
+    vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
 
@@ -30,6 +31,7 @@ async def test_process_document_success():
         document_repository=document_repository,
         chunk_repository=chunk_repository,
         embedding_service=embedding_service,
+        vector_repository=vector_repository,
     )
 
     service.pdf_processor.extract_text = AsyncMock(
@@ -56,6 +58,8 @@ async def test_process_document_success():
 
     embedding_service.embed_chunks.assert_called_once()
 
+    vector_repository.upsert_chunks.assert_awaited_once()
+
     chunk_repository.bulk_create.assert_awaited_once()
 
     document_repository.update_processing_result.assert_awaited_once_with(
@@ -80,6 +84,7 @@ async def test_process_document_failure():
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
     embedding_service = Mock()
+    vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
 
@@ -87,6 +92,7 @@ async def test_process_document_failure():
         document_repository=document_repository,
         chunk_repository=chunk_repository,
         embedding_service=embedding_service,
+        vector_repository=vector_repository,
     )
 
     error = RuntimeError("Failed to extract PDF text.")
@@ -113,6 +119,8 @@ async def test_process_document_failure():
 
     embedding_service.embed_chunks.assert_not_called()
 
+    vector_repository.upsert_chunks.assert_not_awaited()
+
     chunk_repository.bulk_create.assert_not_awaited()
 
     document_repository.update_processing_result.assert_not_awaited()
@@ -130,6 +138,7 @@ async def test_process_document_fails_when_embedding_fails():
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
     embedding_service = Mock()
+    vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
 
@@ -137,6 +146,7 @@ async def test_process_document_fails_when_embedding_fails():
         document_repository=document_repository,
         chunk_repository=chunk_repository,
         embedding_service=embedding_service,
+        vector_repository=vector_repository,
     )
 
     service.pdf_processor.extract_text = AsyncMock(
@@ -168,7 +178,73 @@ async def test_process_document_fails_when_embedding_fails():
 
     document_repository.update_processing_result.assert_not_awaited()
 
+    vector_repository.upsert_chunks.assert_not_awaited()
+
     document_repository.mark_as_failed.assert_awaited_once_with(
         "document-1",
         "Embedding generation failed.",
+    )
+
+@pytest.mark.anyio
+async def test_process_document_fails_when_vector_storage_fails():
+    document = Document(
+        filename="test.pdf",
+        stored_filename="test.pdf",
+        storage_path="storage/test.pdf",
+        file_size=100,
+        content_type="application/pdf",
+    )
+
+    document_repository = AsyncMock()
+    chunk_repository = AsyncMock()
+    embedding_service = Mock()
+    vector_repository = AsyncMock()
+
+    document_repository.find_by_id.return_value = document
+
+    embedding_service.embed_chunks.side_effect = (
+        lambda chunks: chunks
+    )
+
+    vector_repository.upsert_chunks.side_effect = RuntimeError(
+        "Vector storage failed."
+    )
+
+    service = ProcessingService(
+        document_repository=document_repository,
+        chunk_repository=chunk_repository,
+        embedding_service=embedding_service,
+        vector_repository=vector_repository,
+    )
+
+    service.pdf_processor.extract_text = AsyncMock(
+        return_value=(
+            "Page one text",
+            1,
+            ["Page one text"],
+        )
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Vector storage failed.",
+    ):
+        await service.process_document("document-1")
+
+    document_repository.update_status.assert_awaited_once_with(
+        "document-1",
+        DocumentStatus.PROCESSING,
+    )
+
+    embedding_service.embed_chunks.assert_called_once()
+
+    vector_repository.upsert_chunks.assert_awaited_once()
+
+    chunk_repository.bulk_create.assert_not_awaited()
+
+    document_repository.update_processing_result.assert_not_awaited()
+
+    document_repository.mark_as_failed.assert_awaited_once_with(
+        "document-1",
+        "Vector storage failed.",
     )

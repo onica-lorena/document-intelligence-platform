@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+from app.vectorstore.repository import VectorRepository
 
 from fastapi import FastAPI
 
@@ -18,6 +19,12 @@ async def lifespan(app: FastAPI):
     await connect_to_mongo()
 
     logger.info("MongoDB connected.")
+
+    vector_repository = VectorRepository()
+
+    await vector_repository.create_collection()
+
+    logger.info("Qdrant collection initialized.")
 
     yield
 

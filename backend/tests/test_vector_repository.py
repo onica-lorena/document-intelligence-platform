@@ -1,5 +1,5 @@
 from unittest.mock import AsyncMock, patch
-
+from uuid import uuid5, NAMESPACE_URL
 import pytest
 
 from app.models.chunk import Chunk
@@ -46,7 +46,14 @@ async def test_upsert_chunks():
 
     assert len(points) == 2
 
-    assert points[0].id == "document-1:0"
+    expected_id = str(
+        uuid5(
+            NAMESPACE_URL,
+            "document-1:0",
+        )
+    )
+
+    assert points[0].id == expected_id
     assert points[0].vector == [0.1, 0.2, 0.3]
 
     assert points[0].payload["document_id"] == "document-1"
@@ -54,7 +61,14 @@ async def test_upsert_chunks():
     assert points[0].payload["text"] == "First chunk"
     assert points[0].payload["page_number"] == 1
 
-    assert points[1].id == "document-1:1"
+    expected_id = str(
+        uuid5(
+            NAMESPACE_URL,
+            "document-1:1",
+        )
+    )
+
+    assert points[1].id == expected_id
     assert points[1].vector == [0.4, 0.5, 0.6]
 
 @pytest.mark.anyio

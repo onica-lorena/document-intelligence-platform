@@ -9,6 +9,7 @@ from app.repositories.document import DocumentRepository
 from app.services.embedding import EmbeddingService
 from app.services.processing import ProcessingService
 from app.storage.local import LocalStorage
+from app.vectorstore.repository import VectorRepository
 
 
 class DocumentService:
@@ -31,10 +32,13 @@ class DocumentService:
             embedding_model=embedding_model,
         )
 
+        vector_repository = VectorRepository()
+
         self.processing_service = ProcessingService(
             document_repository=repository,
             chunk_repository=chunk_repository,
             embedding_service=embedding_service,
+            vector_repository=vector_repository,
         )
 
     async def upload_document(

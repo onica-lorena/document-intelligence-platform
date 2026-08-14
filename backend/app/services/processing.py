@@ -4,6 +4,7 @@ from app.processing.text_splitter import TextSplitter
 from app.repositories.chunk import ChunkRepository
 from app.repositories.document import DocumentRepository
 from app.services.embedding import EmbeddingService
+from app.vectorstore.repository import VectorRepository
 
 class ProcessingService:
 
@@ -12,10 +13,12 @@ class ProcessingService:
         document_repository: DocumentRepository,
         chunk_repository: ChunkRepository,
         embedding_service: EmbeddingService,
+        vector_repository: VectorRepository,
     ):
         self.document_repository = document_repository
         self.chunk_repository = chunk_repository
         self.embedding_service = embedding_service
+        self.vector_repository = vector_repository
 
         self.pdf_processor = PDFProcessor()
         self.text_splitter = TextSplitter()
@@ -60,6 +63,10 @@ class ProcessingService:
                 chunk_index += len(page_chunks)
 
             chunks = self.embedding_service.embed_chunks(
+                chunks
+            )
+
+            await self.vector_repository.upsert_chunks(
                 chunks
             )
 
