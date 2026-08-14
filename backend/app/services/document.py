@@ -1,8 +1,12 @@
 from fastapi import UploadFile
 
+from app.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingModel,
+)
 from app.models.document import Document, DocumentStatus
 from app.repositories.chunk import ChunkRepository
 from app.repositories.document import DocumentRepository
+from app.services.embedding import EmbeddingService
 from app.services.processing import ProcessingService
 from app.storage.local import LocalStorage
 
@@ -21,9 +25,16 @@ class DocumentService:
             repository.collection.database
         )
 
+        embedding_model = SentenceTransformerEmbeddingModel()
+
+        embedding_service = EmbeddingService(
+            embedding_model=embedding_model,
+        )
+
         self.processing_service = ProcessingService(
             document_repository=repository,
             chunk_repository=chunk_repository,
+            embedding_service=embedding_service,
         )
 
     async def upload_document(
