@@ -1,4 +1,5 @@
 from app.models.document import DocumentStatus
+from app.processing.cleaner import TextCleaner
 from app.processing.pdf_processor import PDFProcessor
 from app.processing.text_splitter import TextSplitter
 from app.repositories.chunk import ChunkRepository
@@ -6,8 +7,8 @@ from app.repositories.document import DocumentRepository
 from app.services.embedding import EmbeddingService
 from app.vectorstore.repository import VectorRepository
 
-class ProcessingService:
 
+class ProcessingService:
     def __init__(
         self,
         document_repository: DocumentRepository,
@@ -21,13 +22,13 @@ class ProcessingService:
         self.vector_repository = vector_repository
 
         self.pdf_processor = PDFProcessor()
+        self.text_cleaner = TextCleaner()
         self.text_splitter = TextSplitter()
 
     async def process_document(
         self,
         document_id: str,
     ) -> None:
-
         document = await self.document_repository.find_by_id(
             document_id
         )
@@ -41,16 +42,22 @@ class ProcessingService:
                 DocumentStatus.PROCESSING,
             )
 
-            text, page_count, pages = await self.pdf_processor.extract_text(
-                document.storage_path,
+            text, page_count, pages = (
+                await self.pdf_processor.extract_text(
+                    document.storage_path,
+                )
             )
 
-            chunks = []
+            cleaned_text = self.text_cleaner.clean(text)
+            cleaned_pages = self.text_cleaner.clean_pages(pages)
 
+            chunks = []
             chunk_index = 0
 
-            for page_number, page_text in enumerate(pages, start=1):
-
+            for page_number, page_text in enumerate(
+                cleaned_pages,
+                start=1,
+            ):
                 page_chunks = self.text_splitter.split(
                     document_id=document_id,
                     text=page_text,
@@ -59,7 +66,6 @@ class ProcessingService:
                 )
 
                 chunks.extend(page_chunks)
-
                 chunk_index += len(page_chunks)
 
             chunks = self.embedding_service.embed_chunks(
@@ -76,7 +82,7 @@ class ProcessingService:
 
             await self.document_repository.update_processing_result(
                 document_id=document_id,
-                text=text,
+                text=cleaned_text,
                 page_count=page_count,
             )
 
@@ -85,5 +91,4 @@ class ProcessingService:
                 document_id,
                 str(exc),
             )
-
             raise
