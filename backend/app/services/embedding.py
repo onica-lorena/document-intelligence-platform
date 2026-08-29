@@ -1,3 +1,5 @@
+from typing import Any
+
 from app.embeddings.base import BaseEmbeddingModel
 from app.models.chunk import Chunk
 
@@ -10,11 +12,18 @@ class EmbeddingService:
     ):
         self.embedding_model = embedding_model
 
+    @property
+    def tokenizer(self) -> Any:
+        return self.embedding_model.tokenizer
+
+    @property
+    def max_input_length(self) -> int:
+        return self.embedding_model.max_input_length
+
     def embed_chunks(
         self,
         chunks: list[Chunk],
     ) -> list[Chunk]:
-
         if not chunks:
             return []
 

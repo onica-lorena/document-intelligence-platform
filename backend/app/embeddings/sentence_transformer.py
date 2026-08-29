@@ -16,5 +16,12 @@ class SentenceTransformerEmbeddingModel(BaseEmbeddingModel):
         texts: list[str],
     ) -> list[list[float]]:
         embeddings = self.model.encode(texts)
-
         return embeddings.tolist()
+
+    @property
+    def tokenizer(self):
+        return self.model.tokenizer
+
+    @property
+    def max_input_length(self) -> int:
+        return self.model.max_seq_length

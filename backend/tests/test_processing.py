@@ -18,7 +18,12 @@ async def test_process_document_success():
 
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
+
     embedding_service = Mock()
+    embedding_service.tokenizer = Mock()
+    embedding_service.tokenizer.encode.return_value = [1, 2, 3, 4]
+    embedding_service.max_input_length = 256
+
     vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
@@ -83,7 +88,12 @@ async def test_process_document_failure():
 
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
+
     embedding_service = Mock()
+    embedding_service.tokenizer = Mock()
+    embedding_service.tokenizer.encode.return_value = [1, 2, 3, 4]
+    embedding_service.max_input_length = 256
+
     vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
@@ -125,6 +135,7 @@ async def test_process_document_failure():
 
     document_repository.update_processing_result.assert_not_awaited()
 
+
 @pytest.mark.anyio
 async def test_process_document_fails_when_embedding_fails():
     document = Document(
@@ -137,7 +148,12 @@ async def test_process_document_fails_when_embedding_fails():
 
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
+
     embedding_service = Mock()
+    embedding_service.tokenizer = Mock()
+    embedding_service.tokenizer.encode.return_value = [1, 2, 3, 4]
+    embedding_service.max_input_length = 256
+
     vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document
@@ -185,6 +201,7 @@ async def test_process_document_fails_when_embedding_fails():
         "Embedding generation failed.",
     )
 
+
 @pytest.mark.anyio
 async def test_process_document_fails_when_vector_storage_fails():
     document = Document(
@@ -197,7 +214,12 @@ async def test_process_document_fails_when_vector_storage_fails():
 
     document_repository = AsyncMock()
     chunk_repository = AsyncMock()
+
     embedding_service = Mock()
+    embedding_service.tokenizer = Mock()
+    embedding_service.tokenizer.encode.return_value = [1, 2, 3, 4]
+    embedding_service.max_input_length = 256
+
     vector_repository = AsyncMock()
 
     document_repository.find_by_id.return_value = document

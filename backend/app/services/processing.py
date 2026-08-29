@@ -23,7 +23,12 @@ class ProcessingService:
 
         self.pdf_processor = PDFProcessor()
         self.text_cleaner = TextCleaner()
-        self.text_splitter = TextSplitter()
+        self.text_splitter = TextSplitter(
+            tokenizer=self.embedding_service.tokenizer,
+            max_input_length=self.embedding_service.max_input_length,
+            character_chunk_size=1000,
+            token_overlap=50,
+        )
 
     async def process_document(
         self,

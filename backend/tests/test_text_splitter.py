@@ -1,82 +1,132 @@
-import pytest
-
 from app.processing.text_splitter import TextSplitter
 
 
-def test_split_creates_chunks():
-    splitter = TextSplitter()
+class FakeTokenizer:
 
-    text = "a" * 2500
+    def encode(
+        self,
+        text: str,
+        add_special_tokens: bool = False,
+    ) -> list[int]:
+        return list(range(len(text.split())))
 
-    chunks = splitter.split(
-        document_id="document-1",
-        text=text,
-        chunk_size=1000,
-        chunk_overlap=200,
-    )
-
-    assert len(chunks) == 3
-
-
-def test_split_preserves_overlap():
-    splitter = TextSplitter()
-
-    text = "a" * 1800
-
-    chunks = splitter.split(
-        document_id="document-1",
-        text=text,
-        chunk_size=1000,
-        chunk_overlap=200,
-    )
-
-    assert len(chunks) == 2
-    assert chunks[0].text[-200:] == chunks[1].text[:200]
-
-
-def test_split_rejects_invalid_overlap():
-    splitter = TextSplitter()
-
-    with pytest.raises(ValueError):
-        splitter.split(
-            document_id="document-1",
-            text="some text",
-            chunk_size=1000,
-            chunk_overlap=1000,
+    def decode(
+        self,
+        token_ids: list[int],
+        skip_special_tokens: bool = True,
+        clean_up_tokenization_spaces: bool = False,
+    ) -> str:
+        return " ".join(
+            f"word-{token_id}"
+            for token_id in token_ids
         )
 
+
+def create_splitter() -> TextSplitter:
+    return TextSplitter(
+        tokenizer=FakeTokenizer(),
+        max_input_length=20,
+        character_chunk_size=100,
+        token_overlap=5,
+    )
+
+
+def test_split_creates_chunks():
+
+    splitter = create_splitter()
+
+    text = " ".join(
+        f"word-{index}"
+        for index in range(40)
+    )
+
+    chunks = splitter.split(
+        document_id="document-1",
+        text=text,
+    )
+
+    assert len(chunks) >= 2
+    assert chunks[0].chunk_index == 0
+    assert chunks[1].chunk_index == 1
+
+
+def test_split_preserves_token_overlap():
+
+    splitter = create_splitter()
+
+    text = " ".join(
+        f"word-{index}"
+        for index in range(30)
+    )
+
+    chunks = splitter.split(
+        document_id="document-1",
+        text=text,
+    )
+
+    assert len(chunks) >= 2
+
+    first_words = chunks[0].text.split()
+    second_words = chunks[1].text.split()
+
+    assert first_words[-5:] == second_words[:5]
+
+
 def test_split_returns_one_chunk_for_short_text():
-    splitter = TextSplitter()
+
+    splitter = create_splitter()
 
     text = "This is a short text."
 
     chunks = splitter.split(
         document_id="document-1",
         text=text,
-        chunk_size=1000,
-        chunk_overlap=200,
     )
 
     assert len(chunks) == 1
-    assert chunks[0].text == text
+    assert chunks[0].document_id == "document-1"
     assert chunks[0].chunk_index == 0
-    assert chunks[0].character_count == len(text)
 
-def test_split_sets_chunk_metadata():
-    splitter = TextSplitter()
 
-    text = "a" * 1500
+def test_split_preserves_page_number():
+
+    splitter = create_splitter()
+
+    text = "This is a short text."
 
     chunks = splitter.split(
-        document_id="document-123",
+        document_id="document-1",
         text=text,
         page_number=3,
-        start_index=5,
-        chunk_size=1000,
-        chunk_overlap=200,
     )
 
-    assert chunks[0].document_id == "document-123"
-    assert chunks[0].chunk_index == 5
+    assert len(chunks) == 1
     assert chunks[0].page_number == 3
-    assert chunks[0].character_count == 1000
+
+
+def test_split_respects_start_index():
+
+    splitter = create_splitter()
+
+    text = "This is a short text."
+
+    chunks = splitter.split(
+        document_id="document-1",
+        text=text,
+        start_index=5,
+    )
+
+    assert len(chunks) == 1
+    assert chunks[0].chunk_index == 5
+
+
+def test_split_returns_empty_for_empty_text():
+
+    splitter = create_splitter()
+
+    chunks = splitter.split(
+        document_id="document-1",
+        text="",
+    )
+
+    assert chunks == []
