@@ -1,4 +1,11 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    UploadFile,
+    HTTPException,
+)
 
 from app.dependencies.database import get_db
 from app.dependencies.storage import get_storage
@@ -19,6 +26,7 @@ router = APIRouter(
     response_model=DocumentResponse,
 )
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db=Depends(get_db),
     storage: LocalStorage = Depends(get_storage),
@@ -30,7 +38,14 @@ async def upload_document(
         storage=storage,
     )
 
-    document_id, document = await service.upload_document(file=file)
+    document_id, document = await service.upload_document(
+        file=file,
+    )
+
+    background_tasks.add_task(
+        service.process_document,
+        document_id,
+    )
 
     return DocumentResponse(
         id=document_id,

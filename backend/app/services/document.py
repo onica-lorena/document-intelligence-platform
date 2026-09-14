@@ -61,12 +61,16 @@ class DocumentService:
             document
         )
 
-        await self.processing_service.process_document(
-            document_id
-        )
-
         document = await self.repository.find_by_id(
             document_id
         )
 
         return document_id, document
+
+    async def process_document(
+        self,
+        document_id: str,
+    ) -> None:
+        await self.processing_service.process_document(
+            document_id
+        )
