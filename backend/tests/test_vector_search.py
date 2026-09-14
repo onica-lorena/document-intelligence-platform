@@ -157,7 +157,15 @@ async def test_vector_search_returns_qdrant_points(
     )
 
     assert result == points
+
     assert len(result) == 2
+
     assert result[0].payload["document_id"] == "document-1"
     assert result[0].payload["chunk_index"] == 0
+    assert result[0].payload["page_number"] == 1
     assert result[0].score == 0.95
+
+    assert result[1].payload["document_id"] == "document-1"
+    assert result[1].payload["chunk_index"] == 1
+    assert result[1].payload["page_number"] == 2
+    assert result[1].score == 0.88
