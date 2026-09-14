@@ -1,5 +1,13 @@
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 from uuid import uuid5, NAMESPACE_URL
+
 from app.core.config import settings
 from app.models.chunk import Chunk
 from app.vectorstore.client import qdrant_client
@@ -61,3 +69,31 @@ class VectorRepository:
             collection_name=settings.QDRANT_COLLECTION,
             points=points,
         )
+
+    async def search(
+        self,
+        query_vector: list[float],
+        limit: int = 5,
+        document_id: str | None = None,
+    ):
+        query_filter = None
+
+        if document_id is not None:
+            query_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="document_id",
+                        match=MatchValue(value=document_id),
+                    )
+                ]
+            )
+
+        response = await qdrant_client.query_points(
+            collection_name=settings.QDRANT_COLLECTION,
+            query=query_vector,
+            query_filter=query_filter,
+            limit=limit,
+            with_payload=True,
+        )
+
+        return response.points
