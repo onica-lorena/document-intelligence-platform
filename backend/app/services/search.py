@@ -23,9 +23,7 @@ class SearchService:
         if not query:
             return []
 
-        query_embedding = self.embedding_service.embedding_model.encode(
-            [query]
-        )[0]
+        query_embedding = self.embedding_service.embed_query(query)
 
         points = await self.vector_repository.search(
             query_vector=query_embedding,

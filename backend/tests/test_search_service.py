@@ -8,10 +8,7 @@ from app.services.search import SearchService
 
 @pytest.mark.anyio
 async def test_search_with_empty_query():
-    embedding_model = Mock()
     embedding_service = Mock()
-    embedding_service.embedding_model = embedding_model
-
     vector_repository = AsyncMock()
 
     service = SearchService(
@@ -23,20 +20,19 @@ async def test_search_with_empty_query():
 
     assert result == []
 
-    embedding_model.encode.assert_not_called()
+    embedding_service.embed_query.assert_not_called()
     vector_repository.search.assert_not_awaited()
 
 
 @pytest.mark.anyio
 async def test_search_with_valid_query_generates_embedding():
-    embedding_model = Mock()
-
-    embedding_model.encode.return_value = [
-        [0.1, 0.2, 0.3]
-    ]
-
     embedding_service = Mock()
-    embedding_service.embedding_model = embedding_model
+
+    embedding_service.embed_query.return_value = [
+        0.1,
+        0.2,
+        0.3,
+    ]
 
     vector_repository = AsyncMock()
     vector_repository.search.return_value = []
@@ -53,8 +49,8 @@ async def test_search_with_valid_query_generates_embedding():
 
     assert result == []
 
-    embedding_model.encode.assert_called_once_with(
-        ["machine learning"]
+    embedding_service.embed_query.assert_called_once_with(
+        "machine learning"
     )
 
     vector_repository.search.assert_awaited_once_with(
@@ -66,14 +62,13 @@ async def test_search_with_valid_query_generates_embedding():
 
 @pytest.mark.anyio
 async def test_search_respects_limit():
-    embedding_model = Mock()
-
-    embedding_model.encode.return_value = [
-        [0.1, 0.2, 0.3]
-    ]
-
     embedding_service = Mock()
-    embedding_service.embedding_model = embedding_model
+
+    embedding_service.embed_query.return_value = [
+        0.1,
+        0.2,
+        0.3,
+    ]
 
     vector_repository = AsyncMock()
     vector_repository.search.return_value = []
@@ -86,6 +81,10 @@ async def test_search_respects_limit():
     await service.search(
         query="machine learning",
         limit=10,
+    )
+
+    embedding_service.embed_query.assert_called_once_with(
+        "machine learning"
     )
 
     vector_repository.search.assert_awaited_once_with(
@@ -97,14 +96,13 @@ async def test_search_respects_limit():
 
 @pytest.mark.anyio
 async def test_search_passes_document_id():
-    embedding_model = Mock()
-
-    embedding_model.encode.return_value = [
-        [0.1, 0.2, 0.3]
-    ]
-
     embedding_service = Mock()
-    embedding_service.embedding_model = embedding_model
+
+    embedding_service.embed_query.return_value = [
+        0.1,
+        0.2,
+        0.3,
+    ]
 
     vector_repository = AsyncMock()
     vector_repository.search.return_value = []
@@ -120,6 +118,10 @@ async def test_search_passes_document_id():
         document_id="document-123",
     )
 
+    embedding_service.embed_query.assert_called_once_with(
+        "machine learning"
+    )
+
     vector_repository.search.assert_awaited_once_with(
         query_vector=[0.1, 0.2, 0.3],
         limit=5,
@@ -129,14 +131,13 @@ async def test_search_passes_document_id():
 
 @pytest.mark.anyio
 async def test_search_maps_qdrant_results_correctly():
-    embedding_model = Mock()
-
-    embedding_model.encode.return_value = [
-        [0.1, 0.2, 0.3]
-    ]
-
     embedding_service = Mock()
-    embedding_service.embedding_model = embedding_model
+
+    embedding_service.embed_query.return_value = [
+        0.1,
+        0.2,
+        0.3,
+    ]
 
     vector_repository = AsyncMock()
 
@@ -169,6 +170,10 @@ async def test_search_maps_qdrant_results_correctly():
     result = await service.search(
         query="machine learning",
         limit=5,
+    )
+
+    embedding_service.embed_query.assert_called_once_with(
+        "machine learning"
     )
 
     assert len(result) == 2

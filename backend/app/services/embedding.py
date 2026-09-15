@@ -20,6 +20,12 @@ class EmbeddingService:
     def max_input_length(self) -> int:
         return self.embedding_model.max_input_length
 
+    def embed_query(
+        self,
+        query: str,
+    ) -> list[float]:
+        return self.embedding_model.encode([query])[0]
+
     def embed_chunks(
         self,
         chunks: list[Chunk],

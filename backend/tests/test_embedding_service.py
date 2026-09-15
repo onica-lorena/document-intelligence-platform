@@ -84,3 +84,24 @@ def test_embed_chunks_raises_when_embedding_count_does_not_match_chunks():
 
     with pytest.raises(ValueError):
         service.embed_chunks(chunks)
+
+def test_embed_query():
+    embedding_model = Mock()
+
+    embedding_model.encode.return_value = [
+        [0.1, 0.2, 0.3]
+    ]
+
+    service = EmbeddingService(
+        embedding_model=embedding_model,
+    )
+
+    query = "What is this document about?"
+
+    embedding = service.embed_query(query)
+
+    embedding_model.encode.assert_called_once_with(
+        [query]
+    )
+
+    assert embedding == [0.1, 0.2, 0.3]
