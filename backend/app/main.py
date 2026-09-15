@@ -8,6 +8,7 @@ from app.core.middleware import log_requests
 from app.core.lifespan import lifespan
 from app.api.documents import router as document_router
 from app.api.search import router as search_router
+from app.api.rag import router as rag_router
 
 setup_logging()
 
@@ -27,3 +28,4 @@ register_exception_handlers(app)
 app.include_router(health_router)
 app.include_router(document_router)
 app.include_router(search_router)
+app.include_router(rag_router)
