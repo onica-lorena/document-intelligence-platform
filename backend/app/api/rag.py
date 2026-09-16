@@ -11,13 +11,14 @@ from app.services.embedding import EmbeddingService
 from app.services.rag import RAGService
 from app.services.search import SearchService
 from app.vectorstore.repository import VectorRepository
+from app.dependencies.database import get_db
+from app.repositories.chunk import ChunkRepository
 
 
 router = APIRouter(
     prefix="/rag",
     tags=["RAG"],
 )
-
 
 @lru_cache
 def get_rag_service() -> RAGService:
@@ -36,11 +37,15 @@ def get_rag_service() -> RAGService:
 
     llm = OllamaLLM()
 
+    chunk_repository = ChunkRepository(
+        get_db()
+    )
+
     return RAGService(
         search_service=search_service,
         llm=llm,
+        chunk_repository=chunk_repository,
     )
-
 
 @router.post(
     "",

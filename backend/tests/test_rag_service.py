@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -12,6 +12,9 @@ async def test_rag_generates_answer_using_search_results():
 
     search_service = AsyncMock()
     llm = AsyncMock()
+
+    chunk_repository = MagicMock()
+    chunk_repository.find_adjacent = AsyncMock(return_value=[])
 
     search_service.search.return_value = [
         SimpleNamespace(
@@ -38,6 +41,7 @@ async def test_rag_generates_answer_using_search_results():
     service = RAGService(
         search_service=search_service,
         llm=llm,
+        chunk_repository=chunk_repository,
     )
 
     result = await service.answer(
@@ -60,6 +64,7 @@ async def test_rag_generates_answer_using_search_results():
     assert result.sources[0].page_number == 4
 
     assert result.sources[1].citation_id == 2
+    assert result.sources[1].document_id == "document-1"
     assert result.sources[1].chunk_index == 5
     assert result.sources[1].page_number == 6
 
@@ -67,6 +72,18 @@ async def test_rag_generates_answer_using_search_results():
         query="What does the system do?",
         limit=5,
         document_id=None,
+    )
+
+    chunk_repository.find_adjacent.assert_any_await(
+        document_id="document-1",
+        chunk_index=2,
+        radius=2,
+    )
+
+    chunk_repository.find_adjacent.assert_any_await(
+        document_id="document-1",
+        chunk_index=5,
+        radius=2,
     )
 
     llm.generate.assert_awaited_once()
@@ -78,11 +95,15 @@ async def test_rag_returns_message_when_no_results_are_found():
     search_service = AsyncMock()
     llm = AsyncMock()
 
+    chunk_repository = MagicMock()
+    chunk_repository.find_adjacent = AsyncMock(return_value=[])
+
     search_service.search.return_value = []
 
     service = RAGService(
         search_service=search_service,
         llm=llm,
+        chunk_repository=chunk_repository,
     )
 
     result = await service.answer(
@@ -96,6 +117,7 @@ async def test_rag_returns_message_when_no_results_are_found():
 
     assert result.sources == []
 
+    chunk_repository.find_adjacent.assert_not_awaited()
     llm.generate.assert_not_awaited()
 
 
@@ -105,9 +127,13 @@ async def test_rag_handles_empty_query():
     search_service = AsyncMock()
     llm = AsyncMock()
 
+    chunk_repository = MagicMock()
+    chunk_repository.find_adjacent = AsyncMock(return_value=[])
+
     service = RAGService(
         search_service=search_service,
         llm=llm,
+        chunk_repository=chunk_repository,
     )
 
     result = await service.answer(
@@ -119,4 +145,5 @@ async def test_rag_handles_empty_query():
     assert result.sources == []
 
     search_service.search.assert_not_awaited()
+    chunk_repository.find_adjacent.assert_not_awaited()
     llm.generate.assert_not_awaited()

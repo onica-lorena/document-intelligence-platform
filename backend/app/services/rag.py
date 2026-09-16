@@ -1,7 +1,8 @@
 from app.llm.base import BaseLLM
+from app.models.chunk import Chunk
+from app.repositories.chunk import ChunkRepository
 from app.schemas.rag import RAGResponse, RAGSource
 from app.services.search import SearchService
-
 
 class RAGService:
 
@@ -25,9 +26,51 @@ Rules:
         self,
         search_service: SearchService,
         llm: BaseLLM,
+        chunk_repository: ChunkRepository,
     ):
         self.search_service = search_service
         self.llm = llm
+        self.chunk_repository = chunk_repository
+
+    async def _expand_context(
+        self,
+        search_results,
+        radius: int = 2,
+    ) -> dict[int, list[Chunk]]:
+
+        expanded_context: dict[int, list[Chunk]] = {}
+
+        seen_chunks: set[tuple[str, int]] = set()
+
+        for result_index, result in enumerate(
+            search_results,
+            start=1,
+        ):
+            adjacent_chunks = (
+                await self.chunk_repository.find_adjacent(
+                    document_id=result.document_id,
+                    chunk_index=result.chunk_index,
+                    radius=radius,
+                )
+            )
+
+            unique_chunks = []
+
+            for chunk in adjacent_chunks:
+                chunk_key = (
+                    chunk.document_id,
+                    chunk.chunk_index,
+                )
+
+                if chunk_key in seen_chunks:
+                    continue
+
+                seen_chunks.add(chunk_key)
+                unique_chunks.append(chunk)
+
+            expanded_context[result_index] = unique_chunks
+
+        return expanded_context
 
     async def answer(
         self,
@@ -60,6 +103,11 @@ Rules:
                 sources=[],
             )
 
+        expanded_context = await self._expand_context(
+            search_results,
+            radius=2,
+        )
+
         context_parts = []
         sources = []
 
@@ -67,12 +115,27 @@ Rules:
             search_results,
             start=1,
         ):
+            chunks = expanded_context[index]
+
+            chunk_parts = []
+
+            for chunk in chunks:
+                chunk_parts.append(
+                    f"Chunk {chunk.chunk_index} "
+                    f"(Page {chunk.page_number}):\n"
+                    f"{chunk.text}"
+                )
+
+            expanded_text = "\n\n".join(
+                chunk_parts
+            )
+
             context_parts.append(
                 f"[{index}]\n"
                 f"Document ID: {result.document_id}\n"
-                f"Chunk: {result.chunk_index}\n"
-                f"Page: {result.page_number}\n"
-                f"Content:\n{result.text}"
+                f"Retrieved chunk: {result.chunk_index}\n"
+                f"Expanded context:\n"
+                f"{expanded_text}"
             )
 
             sources.append(
