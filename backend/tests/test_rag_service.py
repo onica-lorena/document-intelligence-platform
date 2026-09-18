@@ -88,6 +88,64 @@ async def test_rag_generates_answer_using_search_results():
 
     llm.generate.assert_awaited_once()
 
+@pytest.mark.anyio
+async def test_rag_source_contains_expanded_context():
+
+    search_service = AsyncMock()
+    llm = AsyncMock()
+
+    chunk_repository = MagicMock()
+
+    search_service.search.return_value = [
+        SimpleNamespace(
+            document_id="document-1",
+            chunk_index=4,
+            text="Languages: Romanian, English, German.",
+            page_number=4,
+            score=0.90,
+        )
+    ]
+
+    chunk_repository.find_adjacent = AsyncMock(
+        return_value=[
+            SimpleNamespace(
+                document_id="document-1",
+                chunk_index=3,
+                text="Expected Graduation: 2026",
+                page_number=3,
+            ),
+            SimpleNamespace(
+                document_id="document-1",
+                chunk_index=4,
+                text="Languages: Romanian, English, German.",
+                page_number=4,
+            ),
+        ]
+    )
+
+    llm.generate.return_value = (
+        "Lorena-Andreea Onica is expected to graduate in 2026 [1]."
+    )
+
+    service = RAGService(
+        search_service=search_service,
+        llm=llm,
+        chunk_repository=chunk_repository,
+    )
+
+    result = await service.answer(
+        query="When is Lorena-Andreea Onica expected to graduate?",
+        limit=5,
+    )
+
+    assert len(result.sources) == 1
+
+    assert result.sources[0].citation_id == 1
+    assert result.sources[0].chunk_index == 4
+
+    assert "Expected Graduation: 2026" in result.sources[0].text
+    assert "Languages: Romanian, English, German." in result.sources[0].text
+
 
 @pytest.mark.anyio
 async def test_rag_returns_message_when_no_results_are_found():

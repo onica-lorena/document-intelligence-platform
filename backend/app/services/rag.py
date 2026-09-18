@@ -130,6 +130,13 @@ Rules:
                 chunk_parts
             )
 
+            if not expanded_text:
+                expanded_text = (
+                    f"Chunk {result.chunk_index} "
+                    f"(Page {result.page_number}):\n"
+                    f"{result.text}"
+                )
+
             context_parts.append(
                 f"[{index}]\n"
                 f"Document ID: {result.document_id}\n"
@@ -143,7 +150,7 @@ Rules:
                     citation_id=index,
                     document_id=result.document_id,
                     chunk_index=result.chunk_index,
-                    text=result.text,
+                    text=expanded_text,
                     page_number=result.page_number,
                     score=result.score,
                 )
