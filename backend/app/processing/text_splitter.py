@@ -71,49 +71,71 @@ class TextSplitter:
         text: str,
     ) -> list[str]:
 
-        paragraphs = [
-            paragraph.strip()
-            for paragraph in re.split(r"\n\s*\n", text)
-            if paragraph.strip()
+        lines = [
+            line.strip()
+            for line in text.splitlines()
+            if line.strip()
         ]
 
         sections: list[str] = []
+        current_section: list[str] = []
 
-        for paragraph in paragraphs:
+        for line in lines:
 
-            if len(paragraph) <= self.character_chunk_size:
-                sections.append(paragraph)
-                continue
+            if self._is_section_heading(line):
 
-            sentences = re.split(
-                r"(?<=[.!?])\s+",
-                paragraph,
+                if current_section:
+                    sections.append(
+                        "\n".join(current_section)
+                    )
+                    current_section = []
+
+            current_section.append(line)
+
+        if current_section:
+            sections.append(
+                "\n".join(current_section)
             )
 
-            current_section = ""
-
-            for sentence in sentences:
-                sentence = sentence.strip()
-
-                if not sentence:
-                    continue
-
-                if not current_section:
-                    current_section = sentence
-                    continue
-
-                candidate = f"{current_section} {sentence}"
-
-                if len(candidate) <= self.character_chunk_size:
-                    current_section = candidate
-                else:
-                    sections.append(current_section)
-                    current_section = sentence
-
-            if current_section:
-                sections.append(current_section)
-
         return sections
+
+
+    def _is_section_heading(
+        self,
+        line: str,
+    ) -> bool:
+
+        line = line.strip()
+
+        if not line:
+            return False
+
+        if len(line) > 50:
+            return False
+
+        if line.endswith((".", ":", ";", ",")):
+            return False
+
+        letters = [
+            character
+            for character in line
+            if character.isalpha()
+        ]
+
+        if len(letters) < 3:
+            return False
+
+        uppercase_letters = [
+            character
+            for character in letters
+            if character.isupper()
+        ]
+
+        uppercase_ratio = (
+            len(uppercase_letters) / len(letters)
+        )
+
+        return uppercase_ratio >= 0.8
 
     def _split_by_tokens(
         self,

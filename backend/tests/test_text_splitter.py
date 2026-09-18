@@ -130,3 +130,45 @@ def test_split_returns_empty_for_empty_text():
     )
 
     assert chunks == []
+
+def test_split_separates_sections_by_heading():
+
+    splitter = create_splitter()
+
+    text = """PROJECTS
+AI Chatbot for BIM Documentation
+Developed a React-based frontend.
+
+EDUCATION
+Bachelor's Degree in Computer Science
+West University of Timisoara
+Expected Graduation: 2026
+
+LANGUAGES
+Romanian – Native
+English – B2
+German – A2
+"""
+
+    chunks = splitter.split(
+        document_id="document-1",
+        text=text,
+    )
+
+    assert len(chunks) == 3
+
+    assert chunks[0].text.startswith(
+        "PROJECTS"
+    )
+
+    assert chunks[1].text.startswith(
+        "EDUCATION"
+    )
+
+    assert "Expected Graduation: 2026" in chunks[1].text
+
+    assert chunks[2].text.startswith(
+        "LANGUAGES"
+    )
+
+    assert "Expected Graduation: 2026" not in chunks[2].text
