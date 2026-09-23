@@ -205,3 +205,47 @@ async def test_rag_handles_empty_query():
     search_service.search.assert_not_awaited()
     chunk_repository.find_adjacent.assert_not_awaited()
     llm.generate.assert_not_awaited()
+
+@pytest.mark.anyio
+async def test_rag_uses_document_grounded_system_instructions():
+
+    search_service = AsyncMock()
+    llm = AsyncMock()
+
+    chunk_repository = MagicMock()
+    chunk_repository.find_adjacent = AsyncMock(return_value=[])
+
+    search_service.search.return_value = [
+        SimpleNamespace(
+            document_id="document-1",
+            chunk_index=0,
+            text="Professional Experience: Software Development Intern at Rezonect SRL.",
+            page_number=1,
+            score=0.90,
+        )
+    ]
+
+    llm.generate.return_value = "The professional experience is the internship at Rezonect SRL [1]."
+
+    service = RAGService(
+        search_service=search_service,
+        llm=llm,
+        chunk_repository=chunk_repository,
+    )
+
+    await service.answer(
+        query="What professional experience does the person have?",
+        limit=5,
+    )
+
+    llm.generate.assert_awaited_once()
+
+    instructions = llm.generate.call_args.kwargs["instructions"]
+
+    assert "same language as the user's question" in instructions
+    assert "Do not use outside knowledge." in instructions
+    assert "Do not invent, assume, or infer facts" in instructions
+    assert "Preserve the structure, categories, terminology, and relationships explicitly" in instructions
+    assert "Do not move, merge, or reclassify information between different sections" in instructions
+    assert "Do not add characteristics, relationships, or classifications" in instructions
+    assert "Do not add meta-comments about the sources, documents, or citations." in instructions
