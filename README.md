@@ -1,116 +1,108 @@
 # Document Intelligence Platform
 
-An AI-powered platform for understanding, analyzing, and extracting knowledge from unstructured documents using Large Language Models (LLMs).
+An AI-powered backend platform for processing, searching, and interacting with PDF documents using semantic search and Retrieval-Augmented Generation (RAG).
 
 ## Table of Contents
 
 - [Project Overview](#project-overview)
 - [Motivation](#motivation)
-- [Project Goals](#project-goals)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
-- [Architecture Overview](#architecture-overview)
 - [Document Processing Pipeline](#document-processing-pipeline)
+- [Semantic Search](#semantic-search)
+- [Retrieval-Augmented Generation](#retrieval-augmented-generation)
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
-- [Roadmap](#roadmap)
+- [Current Status](#current-status)
 - [Installation](#installation)
 - [API Overview](#api-overview)
-- [Future Improvements](#future-improvements)
+- [Future Directions](#future-directions)
 
 ## Project Overview
 
-Document Intelligence Platform is a full-stack AI application designed to transform unstructured documents into structured, searchable knowledge.
+Document Intelligence Platform is an AI-powered backend application designed to process PDF documents and transform their content into searchable knowledge.
 
-The platform currently allows users to upload PDF documents and automatically processes their content through text extraction, chunking, and embedding generation. The architecture is designed to evolve towards semantic search and Retrieval-Augmented Generation (RAG).
+The platform provides a complete document processing and retrieval pipeline. PDF files are uploaded through a REST API, their text is extracted and cleaned, the content is divided into structured chunks, and vector embeddings are generated for semantic retrieval.
 
-The project follows modern software engineering and LLMOps principles, emphasizing modularity, maintainability, and clear separation of responsibilities. The architecture is intentionally designed to allow future integration of Retrieval-Augmented Generation (RAG), vector databases, semantic search, and additional AI capabilities without requiring major architectural changes.
+The generated embeddings are stored in Qdrant, enabling similarity-based semantic search across document content.
 
-This repository represents both a learning project and a production-inspired software architecture built to explore modern AI application development using React, FastAPI, MongoDB, Docker, and open-source AI models.
+The platform also implements a Retrieval-Augmented Generation (RAG) pipeline that retrieves relevant document sections and provides them as context to a Large Language Model running locally through Ollama.
+
+The project focuses on backend architecture and AI document processing rather than providing a graphical user interface.
 
 ## Motivation
 
-Organizations generate and manage an increasing number of digital documents every day, including contracts, invoices, reports, resumes, and technical documentation. While storing these documents is straightforward, efficiently understanding and extracting valuable information from them remains a significant challenge.
+Large amounts of useful information are often stored inside documents such as reports, technical documentation, research papers, contracts, and other PDF files.
 
-Traditional document management systems primarily focus on storage and retrieval, requiring users to manually search through documents to locate relevant information. This process is often time-consuming, repetitive, and difficult to scale as document collections grow.
+Traditional keyword-based search can make it difficult to find information when the wording of a query differs from the wording used in the original document.
 
-Recent advances in Large Language Models (LLMs) have introduced new possibilities for document understanding. Instead of simply storing files, modern AI systems can classify documents, extract structured information, generate concise summaries, and transform unstructured text into meaningful knowledge.
+This project explores how modern AI techniques can improve document understanding and retrieval by combining text processing, vector embeddings, semantic search, and Large Language Models.
 
-The goal of this project is to explore these capabilities by designing and implementing a modern Document Intelligence Platform. Beyond experimenting with LLMs, the project emphasizes software architecture, modular design, and maintainability by following principles inspired by modern LLMOps and scalable backend development.
-
-The platform is intentionally designed to evolve over time, allowing future integration of advanced AI capabilities such as Retrieval-Augmented Generation (RAG), semantic search, vector databases, and conversational interaction with document collections.
-
-## Project Goals
-
-The primary goal of this project is to design and implement a modern AI-powered Document Intelligence Platform while applying software engineering best practices and gaining hands-on experience with Large Language Models (LLMs).
-
-The project focuses not only on building functional AI features, but also on designing a scalable and maintainable architecture inspired by modern LLMOps principles.
-
-The main objectives are:
-
-- Build a modular client-server architecture with clearly separated responsibilities.
-- Explore the integration of Large Language Models into real-world software applications.
-- Automatically transform unstructured documents into structured and meaningful knowledge.
-- Implement an extensible document processing pipeline capable of supporting multiple AI tasks.
-- Design the system with future support for Retrieval-Augmented Generation (RAG), semantic search, and conversational document interaction.
-- Gain practical experience with modern technologies including React, FastAPI, MongoDB, Docker, and open-source AI models.
-- Develop a production-inspired portfolio project that emphasizes clean architecture, maintainability, and extensibility over a simple proof of concept.
+The platform was also developed as a practical exploration of modern software engineering and LLM application architecture, with an emphasis on modularity, separation of responsibilities, and maintainability.
 
 ## Key Features
 
-### Document Processing
+### PDF Processing
 
-- Upload PDF documents.
-- Extract text from PDF files.
-- Split extracted text into overlapping chunks.
-- Preserve page and chunk metadata.
+- Upload PDF documents through a REST API.
+- Extract text from digital PDF files using PyMuPDF.
+- Detect potentially corrupted or low-quality extracted text.
+- Use OCR as a fallback when standard text extraction is insufficient.
+- Clean and normalize extracted text.
+- Preserve page-level information.
 - Track document processing status.
-- Store processed document data in MongoDB.
+
+### Text Chunking
+
+- Split extracted text into structured chunks.
+- Use tokenizer-aware chunking.
+- Preserve overlap between chunks for contextual continuity.
+- Preserve document, page, and chunk metadata.
+- Store processed chunks in MongoDB.
 
 ### Embedding Generation
 
-- Generate vector embeddings for document chunks.
-- Use Sentence Transformers with the `all-MiniLM-L6-v2` model.
-- Store generated embeddings together with chunk data.
+- Generate vector embeddings using Sentence Transformers.
+- Use the `all-MiniLM-L6-v2` embedding model.
+- Generate embeddings for document chunks and search queries.
+- Store embeddings together with document data.
 
-### Software Engineering
+### Vector Search
 
-- Modular client-server architecture.
-- RESTful API built with FastAPI.
+- Store document vectors in Qdrant.
+- Perform cosine similarity search.
+- Retrieve the most relevant document chunks for a query.
+- Optionally restrict search to a specific document.
+
+### Retrieval-Augmented Generation
+
+- Retrieve relevant document chunks using semantic search.
+- Expand retrieved results with neighboring chunks to provide additional context.
+- Build document-grounded context for the language model.
+- Generate answers using a locally running LLM through Ollama.
+- Return source information together with generated answers.
+- Restrict generated responses to information available in the retrieved document context.
+
+### Backend Architecture
+
+- REST API built with FastAPI.
 - Repository-Service architecture.
+- MongoDB persistence.
+- Qdrant vector storage.
 - Local document storage.
-- Automated tests using Pytest.
+- Modular embedding and LLM abstractions.
+- Background document processing.
 - Logging and request monitoring.
-- Clear separation of responsibilities across processing components.
-
-### Planned AI Capabilities
-
-- OCR support for scanned documents.
-- Vector Database integration.
-- Retrieval-Augmented Generation (RAG).
-- Semantic document search.
-- Chat with your documents.
-- Support for multiple LLM providers.
-- Local LLM inference using Ollama.
+- Automated tests for core components.
 
 ## System Architecture
 
-The platform follows a modular client-server architecture inspired by modern software engineering and LLMOps principles.
-
-Each component has a single responsibility and communicates through well-defined interfaces, making the system easier to maintain, extend, and evolve.
-
-The frontend communicates with the backend through a REST API. The backend orchestrates the document processing workflow while delegating specialized processing tasks to dedicated services.
-
-The current document processing pipeline extracts text from PDF files, splits the extracted content into chunks, generates vector embeddings for those chunks, and stores the resulting data in MongoDB.
-
-The architecture is intentionally designed to support future integration of Retrieval-Augmented Generation (RAG), vector databases, and local LLM inference without requiring major architectural changes.
+The platform follows a modular backend architecture where document processing, persistence, vector retrieval, and language model interaction are separated into dedicated components.
 
 ```mermaid
 flowchart LR
 
-    User([User])
-
-    Frontend["React Frontend"]
+    Client["API Client"]
 
     API["FastAPI REST API"]
 
@@ -120,299 +112,222 @@ flowchart LR
 
     PDF["PDF Processor"]
 
+    OCR["OCR"]
+
+    Cleaner["Text Cleaner"]
+
     Splitter["Text Splitter"]
 
     Embedding["Embedding Service"]
 
-    Model["Sentence Transformer"]
-
     Mongo[("MongoDB")]
 
-    Storage["Local Storage"]
+    Qdrant[("Qdrant")]
 
-    Monitor["Monitoring & Logging"]
+    Search["Search Service"]
 
-    User --> Frontend
+    RAG["RAG Service"]
 
-    Frontend --> API
+    LLM["Ollama LLM"]
+
+    Client --> API
 
     API --> DocumentService
-
-    DocumentService --> Storage
 
     DocumentService --> Processing
 
     Processing --> PDF
 
-    PDF --> Splitter
+    PDF --> OCR
+
+    PDF --> Cleaner
+
+    Cleaner --> Splitter
 
     Splitter --> Embedding
 
-    Embedding --> Model
-
     Embedding --> Mongo
 
-    Processing --> Mongo
+    Embedding --> Qdrant
 
-    API --> Monitor
+    API --> Search
+
+    Search --> Embedding
+
+    Search --> Qdrant
+
+    API --> RAG
+
+    RAG --> Search
+
+    RAG --> Mongo
+
+    RAG --> LLM
 ```
 
-### Future Architecture
+## Document Processing Pipeline
 
-The system has been designed with extensibility in mind. The current pipeline already includes document chunking and embedding generation. Future versions will introduce a vector database and semantic retrieval to enable Retrieval-Augmented Generation (RAG).
+When a PDF document is uploaded, the platform performs the following processing pipeline:
 
-```mermaid
-flowchart LR
+1. The uploaded file is stored locally.
+2. Document metadata is stored in MongoDB.
+3. The document status is changed to `PROCESSING`.
+4. Text is extracted from each PDF page.
+5. OCR is used when extracted text is detected as potentially corrupted or insufficient.
+6. Extracted text is cleaned and normalized.
+7. Text is divided into chunks while preserving page information.
+8. Vector embeddings are generated for each chunk.
+9. Chunks and their metadata are stored in MongoDB.
+10. Vector representations are stored in Qdrant.
+11. The document status is changed to `COMPLETED`.
 
-    MongoDB[("MongoDB")]
+If processing fails, the document is marked as `FAILED` and the processing error is stored.
 
-    Chunking["Chunking"]
+## Semantic Search
 
-    Embeddings["Embedding Model"]
+The platform provides semantic search over processed PDF documents.
 
-    VectorDB[("Vector Database")]
+Instead of comparing queries using exact keywords, the search query is converted into a vector embedding using the same Sentence Transformer model used for document chunks.
 
-    Retrieval["Retrieval Service"]
+Qdrant performs cosine similarity search between the query vector and stored document vectors.
 
-    Prompt["Prompt Builder"]
+Search results contain:
 
-    LLM["LLM"]
+- Document identifier
+- Chunk index
+- Retrieved text
+- Page number
+- Similarity score
 
-    MongoDB --> Chunking
+Search can also be restricted to a specific document by providing its document identifier.
 
-    Chunking --> Embeddings
+## Retrieval-Augmented Generation
 
-    Embeddings --> VectorDB
+The platform implements a Retrieval-Augmented Generation pipeline for question answering over processed PDF documents.
 
-    Retrieval --> VectorDB
+When a question is submitted:
 
-    Retrieval --> Prompt
+1. The question is converted into an embedding.
+2. Semantic search retrieves the most relevant document chunks.
+3. Neighboring chunks are retrieved to expand the available context.
+4. The retrieved content is assembled into a structured prompt.
+5. The context and question are sent to a locally running LLM through Ollama.
+6. The generated answer is returned together with its document sources.
 
-    Prompt --> LLM
-```
+The LLM is instructed to answer using only the retrieved document context and to avoid introducing unsupported information.
 
-## Architecture Overview
-
-The application follows a modular client-server architecture where each component is responsible for a single task. This separation of responsibilities improves maintainability, scalability, and makes the system easier to extend with new AI capabilities.
-
-### React Frontend
-
-The frontend provides the user interface of the application. It will allow users to upload documents, monitor processing status, and interact with AI-generated results. The frontend communicates with the backend through REST APIs and remains independent of the underlying processing implementation.
-
-### FastAPI REST API
-
-The REST API acts as the entry point of the system. It receives client requests, validates input data, and forwards requests to the document processing pipeline.
-
-### Document Service
-
-The Document Service coordinates document upload and persistence. It stores uploaded files locally, creates document metadata, and initiates the document processing workflow.
-
-### Processing Service
-
-The Processing Service orchestrates the document processing workflow. It coordinates PDF text extraction, text chunking, embedding generation, chunk persistence, and document status updates.
-
-### PDF Processor
-
-The PDF Processor extracts text from digital PDF documents and preserves the text of individual pages for page-aware processing.
-
-### Text Splitter
-
-The Text Splitter divides extracted document text into overlapping chunks.
-
-Each chunk contains metadata such as the document identifier, chunk index, page number, and character count. Chunk overlap helps preserve contextual continuity between neighboring chunks.
-
-### Embedding Service
-
-The Embedding Service converts document chunks into numerical vector representations.
-
-It uses an embedding model abstraction so that the underlying embedding implementation can be replaced without changing the rest of the processing pipeline.
-
-### Sentence Transformer Embedding Model
-
-The current embedding implementation uses Sentence Transformers with the `all-MiniLM-L6-v2` model.
-
-The generated embeddings are stored together with the corresponding document chunks and will later be used for semantic retrieval.
-
-### MongoDB
-
-MongoDB serves as the primary data store of the application.
-
-It currently stores document metadata, extracted text, processing status, document chunks, chunk metadata, and generated embeddings.
-
-### Local Storage
-
-The local storage component is responsible for storing uploaded document files on the local filesystem while MongoDB stores their metadata and processed content.
-
-### Monitoring & Logging
-
-The monitoring component records request execution information, including HTTP methods, paths, response statuses, and execution times.
-
-These logs help debug the application and monitor the behavior of the processing pipeline.
-
-### Future RAG Extension
-
-The architecture has been intentionally designed to support Retrieval-Augmented Generation (RAG).
-
-The current pipeline already provides the first required components:
-
-- Document chunking.
-- Embedding generation.
-
-The next stages will introduce a vector database and semantic retrieval. Retrieved document chunks will later be provided as context to an LLM through a prompt-building layer.
+This approach combines semantic retrieval with language generation while keeping responses grounded in the processed documents.
 
 ## Technology Stack
 
-The project is built using modern technologies that support modular software architecture, AI integration, and future scalability.
-
 | Layer | Technology | Purpose |
 |--------|------------|---------|
-| Frontend | React + TypeScript | Builds the user interface and communicates with the backend through REST APIs. |
-| Backend | FastAPI | Implements the REST API and orchestrates the document processing pipeline. |
-| Database | MongoDB | Stores documents, extracted text, chunks, metadata, and embeddings. |
-| Document Processing | PyMuPDF | Extracts text from PDF documents. |
-| Text Processing | Custom Text Splitter | Splits extracted text into overlapping chunks while preserving metadata. |
-| Embedding Model | Sentence Transformers | Generates vector embeddings for document chunks. |
-| Embedding Model | `all-MiniLM-L6-v2` | Current sentence embedding model used by the platform. |
-| Testing | Pytest | Provides automated tests for document processing components and services. |
-| Containerization | Docker & Docker Compose | Creates a consistent and reproducible development environment. |
+| API | FastAPI | Provides the REST API and coordinates application services. |
+| Database | MongoDB | Stores document metadata, extracted text, chunks, and processing information. |
+| PDF Processing | PyMuPDF | Extracts text and page information from PDF documents. |
+| OCR | Tesseract / PyTesseract | Provides fallback text extraction when standard PDF extraction is insufficient. |
+| Text Processing | Custom Text Splitter | Splits document content into tokenizer-aware chunks. |
+| Embeddings | Sentence Transformers | Generates vector representations of document chunks and queries. |
+| Embedding Model | `all-MiniLM-L6-v2` | Current embedding model used by the platform. |
+| Vector Database | Qdrant | Stores embeddings and performs semantic similarity search. |
+| LLM Integration | Ollama | Provides local Large Language Model inference. |
+| Testing | Pytest | Provides automated testing for core application components. |
+| Dependency Management | Poetry | Manages Python dependencies and project configuration. |
 | Version Control | Git & GitLab | Source code management and version control. |
 
-### Planned Technologies
+## Project Structure
 
-The following technologies are planned for future versions of the project:
-
-| Technology | Purpose |
-|------------|---------|
-| Vector Database | Stores document embeddings for semantic retrieval. |
-| Retrieval-Augmented Generation (RAG) | Enhances LLM responses by retrieving relevant document context before inference. |
-| Ollama | Local LLM inference without relying on cloud providers. |
-| OCR (Tesseract or equivalent) | Extracts text from scanned documents and images. |
-| LLM Provider | Provides access to language models for document understanding and generation. |
-
-## Roadmap
-
-The project is being developed incrementally, with each milestone introducing new capabilities while preserving a modular and maintainable architecture.
-
-### Milestone 1 — Project Foundation
-
-- [ ] Initialize React frontend
-- [x] Initialize FastAPI backend
-- [x] Configure MongoDB
-- [ ] Configure Docker environment
-- [x] Create project architecture
-- [x] Implement document upload
-- [x] Store uploaded document metadata
-
----
-
-### Milestone 2 — Document Processing Pipeline
-
-- [x] Extract text from PDF documents
-- [ ] Support DOCX documents
-- [ ] Support TXT documents
-- [x] Implement document processing workflow
-- [x] Save extracted text in MongoDB
-- [x] Add processing status tracking
-- [x] Implement text chunking
-- [x] Preserve chunk metadata
-- [x] Generate embeddings for document chunks
-- [x] Add automated tests for the processing pipeline
-
----
-
-### Milestone 3 — AI Document Intelligence
-
-- [ ] Integrate an LLM provider
-- [ ] Implement Prompt Builder
-- [ ] Document classification
-- [ ] Information extraction
-- [ ] Document summarization
-- [ ] Keyword generation
-- [ ] Metadata extraction
-- [ ] Store AI-generated knowledge
-
----
-
-### Milestone 4 — User Experience
-
-- [ ] Processing progress indicators
-- [ ] Document history
-- [ ] AI result visualization
-- [ ] Error handling
-- [ ] Improved UI/UX
-- [ ] Responsive interface
-
----
-
-### Milestone 5 — Observability
-
-- [x] Logging
-- [x] Request monitoring
-- [ ] Processing metrics
-- [ ] Error reporting
-- [ ] Performance monitoring
-
----
-
-### Milestone 6 — Future AI Capabilities
-
-- [ ] OCR support
-- [x] Embedding generation using Sentence Transformers
-- [ ] Vector Database integration
-- [ ] Retrieval-Augmented Generation (RAG)
-- [ ] Semantic document search
-- [ ] Chat with documents
-- [ ] Local inference using Ollama
-- [ ] Multiple LLM providers
-
----
-
-### Milestone 7 — Production Readiness
-
-- [ ] Authentication & authorization
-- [ ] Role-based access control
-- [ ] API documentation
-- [x] Automated testing
-- [ ] CI/CD pipeline
-- [ ] Deployment
+```text
+backend/
+│
+├── app/
+│   ├── api/              # REST API endpoints
+│   ├── core/             # Configuration, logging and middleware
+│   ├── database/         # MongoDB connection
+│   ├── dependencies/     # FastAPI dependencies
+│   ├── embeddings/       # Embedding model implementations
+│   ├── llm/              # LLM abstractions and Ollama integration
+│   ├── models/           # Domain models
+│   ├── processing/       # PDF processing, OCR and text processing
+│   ├── repositories/     # MongoDB repositories
+│   ├── schemas/          # API request and response schemas
+│   ├── services/         # Application services
+│   ├── storage/          # Local file storage
+│   ├── vectorstore/      # Qdrant integration
+│   └── main.py           # FastAPI application entry point
+│
+└── tests/                # Automated tests
+```
 
 ## Current Status
 
-> **Current milestone:** Document Processing Pipeline
+> **Status: Core backend functionality completed**
 
-The backend foundation and initial document processing pipeline have been successfully implemented.
+The current version implements the complete backend workflow planned for PDF document processing and document-based question answering.
 
-Implemented so far:
+### Implemented
 
-- FastAPI application structure
-- MongoDB integration
-- Configuration management
-- Logging and request monitoring
-- Repository-Service architecture
-- Document upload
-- Local file storage
-- PDF text extraction
-- Page-aware text chunking
-- Chunk metadata persistence
-- Document processing status tracking
-- Sentence Transformers embedding generation
-- Embedding persistence
-- Automated tests for core processing components
+- [x] FastAPI backend architecture
+- [x] MongoDB integration
+- [x] PDF document upload
+- [x] Local document storage
+- [x] PDF text extraction
+- [x] OCR fallback
+- [x] Text cleaning
+- [x] Page-aware text chunking
+- [x] Sentence Transformer embeddings
+- [x] Qdrant vector database integration
+- [x] Semantic similarity search
+- [x] Search filtering by document
+- [x] Retrieval-Augmented Generation pipeline
+- [x] Context expansion using neighboring chunks
+- [x] Local LLM integration through Ollama
+- [x] Source-aware RAG responses
+- [x] Document processing status tracking
+- [x] Logging and request monitoring
+- [x] Automated tests for core components
 
-The next step is to integrate a vector database and implement semantic retrieval as the foundation for the Retrieval-Augmented Generation (RAG) pipeline.
+The project currently focuses on PDF documents and exposes its functionality through REST API endpoints.
+
+The implemented version represents the completed scope of the current project. Additional capabilities may be explored in the future.
 
 ## Installation
 
-The backend currently requires Python 3.12 and Poetry for dependency management.
+The backend requires Python 3.12 and Poetry for dependency management.
+
+### Install dependencies
 
 ```bash
 cd backend
 poetry install
 ```
 
-Create a `.env` file based on `.env.example` and configure the MongoDB connection and local storage path.
+### Environment configuration
 
-Start the FastAPI application with:
+Create a `.env` file based on `.env.example`.
+
+Configure the following services:
+
+```text
+APP_NAME=
+APP_VERSION=
+DEBUG=
+
+MONGODB_URL=
+DATABASE_NAME=
+
+STORAGE_PATH=
+
+QDRANT_URL=
+QDRANT_COLLECTION=
+
+OLLAMA_BASE_URL=
+OLLAMA_MODEL=
+```
+
+MongoDB is used for application data, Qdrant provides vector storage and semantic retrieval, and Ollama provides local LLM inference.
+
+### Start the application
 
 ```bash
 poetry run uvicorn app.main:app --reload
@@ -434,23 +349,13 @@ GET /health
 
 Returns the current API health status.
 
-### Upload Document
+### Upload PDF Document
 
 ```http
 POST /documents/upload
 ```
 
-Uploads a PDF document and starts the document processing pipeline.
-
-The processing pipeline currently performs:
-
-1. File storage.
-2. Document metadata persistence.
-3. PDF text extraction.
-4. Text chunking.
-5. Embedding generation.
-6. Chunk persistence.
-7. Document status update.
+Uploads a PDF document and starts document processing in the background.
 
 ### Get Document
 
@@ -458,7 +363,7 @@ The processing pipeline currently performs:
 GET /documents/{document_id}
 ```
 
-Returns document metadata and processing status.
+Returns document metadata and its current processing status.
 
 ### Get Document Chunks
 
@@ -466,24 +371,67 @@ Returns document metadata and processing status.
 GET /documents/{document_id}/chunks
 ```
 
-Returns the chunks generated for a document, including their metadata and embeddings.
+Returns the processed chunks associated with a document.
 
-## Future Improvements
+### Semantic Search
 
-The project will continue to evolve towards a complete Retrieval-Augmented Generation (RAG) system.
+```http
+POST /search
+```
 
-Planned improvements include:
+Performs semantic similarity search over processed document content.
 
-- Vector database integration.
-- Semantic similarity search.
-- Retrieval service.
-- Prompt Builder.
-- LLM integration.
-- Retrieval-Augmented Generation.
-- Semantic document search.
-- Conversational interaction with documents.
-- OCR support for scanned documents.
-- Multiple document formats.
-- Local LLM inference using Ollama.
+The search can optionally be restricted to a specific document.
+
+Example request:
+
+```json
+{
+  "query": "What is the main topic of the document?",
+  "limit": 5,
+  "document_id": null
+}
+```
+
+### RAG Question Answering
+
+```http
+POST /rag
+```
+
+Answers a question using information retrieved from processed PDF documents.
+
+Example request:
+
+```json
+{
+  "query": "What are the main conclusions of the document?",
+  "limit": 5,
+  "document_id": null
+}
+```
+
+The response contains the generated answer together with the document sources used as context.
+
+## Future Directions
+
+The current backend implementation represents the completed scope of the project.
+
+The architecture can be extended in the future without these features being part of the current implementation.
+
+Possible future directions include:
+
+- Support for additional document formats such as DOCX and TXT.
+- A graphical web interface for document upload, search, and question answering.
+- Improved OCR and scanned-document processing.
+- Support for additional embedding models.
+- Support for additional LLM providers and models.
+- More advanced retrieval and ranking strategies.
+- Hybrid semantic and keyword search.
+- Document management and deletion endpoints.
 - Authentication and authorization.
-- CI/CD and deployment.
+- Improved error handling and observability.
+- Performance optimization for larger document collections.
+- Containerization of all application services.
+- CI/CD pipeline.
+- Cloud deployment.
